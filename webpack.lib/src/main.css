@@ -1,0 +1,142 @@
+    .staff {
+      width: 22% !important;
+      margin-top: 20px !important;
+      margin-right: 20px !important;
+    }
+    .btn-lg {
+      font-size: 1.5em;
+      margin-right: 10px;
+      padding: 18px 0px 18px 0px;
+    }
+
+    #step-1 .btn-lg {
+      width: 40%;
+    }
+
+    #step-2 .btn-lg {
+      width: 100%;
+    }
+
+    li {
+      font-size: 1.5rem;
+    }
+
+    td {
+      /*width: 14.3%;*/
+      text-align: center;
+      vertical-align: middle;
+      height: 80px;
+      font-size: 1.6em;
+      border: 1px solid #aaa;
+    }
+
+    #calendar table td.active {
+      background-color: #2196f3;
+    }
+
+    tr.weekRow td {
+      font-size: 1.6em;
+      border-bottom: 2px splid #000 !important;
+      cursor: pointer;
+    }
+
+    td.Sunday {
+      background:#FFD1D1;
+    }
+
+    td.Sunday div {
+      color:#990000;
+    }
+
+    td.Saturday {
+      background:#CCF9FF;
+    }
+
+    td.Saturday div {
+      color:#0000FF;
+    }
+
+    td.ignoreMonth {
+      background:#DEDEDE;
+      color: #AAA;
+    }
+
+    td.today {
+      background-color: #0f0;
+      opacity: 0.3;
+    }
+
+    td,th {
+      vertical-align: unset !important;
+    }
+
+    .modal-dialog td {
+      border: unset !important;
+    }
+
+    .btn-secondary:not(:disabled):not(.disabled).active, .btn-secondary:not(:disabled):not(.disabled):active, .show>.btn-secondary.dropdown-toggle {
+        background-color: #673ab7 !important;
+    }
+
+    .ReasonKind {
+      margin-right: 10px;
+      border-radius: .25rem !important;
+      font-size:1.5em;
+    }
+
+    #OvertimeModal td {
+      width: 20%;
+      font-size: 1.2em;
+      height: min-content;
+    }
+
+    input.keyboard_input {
+      background-color: #FFF !important;
+    }
+
+    button.submit {
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+    }
+
+    .nav-link {
+      font-size: 0.8rem !important;
+    }
+
+    #loading {
+      display: none;
+    }
+
+    .loading {
+      background-color: black;
+      opacity: 0.6;
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      top: 0px;
+      left: 0px;
+      z-index: 9999;
+    }
+
+    .circle{
+      width:100px;
+      height:100px;
+      border-radius:150px;
+      border:15px solid #fff;
+      border-top-color:rgba(0,0,0,0.3);
+      box-sizing:border-box;
+      position:absolute;
+      top:50%;
+      left:50%;
+      animation:circle 1s linear infinite;
+      -webkit-animation:circle 1s linear infinite;
+    }
+    @keyframes circle{
+      0%{transform:rotate(0deg)}
+      100%{transform:rotate(360deg)}
+    }
+    @-webkit-keyframes circle{
+      0%{-webkit-transform:rotate(0deg)}
+      100%{-webkit-transform:rotate(360deg)}
+    }
