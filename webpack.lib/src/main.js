@@ -93,7 +93,7 @@ $(document).ready(function() {
       }
     });
 
-  //職員選択ボタンの生成
+  //申請書ボタンの生成
   fetch(`/API/V0.1/ApplicationContentDefinition.class.php`).
     then(responce => responce.json()).
     then(data => {

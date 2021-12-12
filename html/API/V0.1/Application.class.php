@@ -56,16 +56,17 @@ class Application {
   private function BehindOrEarlyTimeNotification() {
 
     $values = ['values' => [[
-        $_REQUEST['StaffName'],
-        $_REQUEST['date'],
-        (isset($_REQUEST['BehindTime'])) ? $_REQUEST['BehindTime'] : '',
-        (isset($_REQUEST['EarlyTime'])) ? $_REQUEST['EarlyTime']: '',
-        $_REQUEST['ReasonKind'],
-        $_REQUEST['ReasonRemarks'],
-        date("Y-m-d H:i:s"),
-        $_REQUEST['LoginUserName'],
-        $_SERVER['HTTP_USER_AGENT'],
-        $_SERVER['REMOTE_ADDR']
+      $_REQUEST['StaffId'],
+      $_REQUEST['StaffName'],
+      $_REQUEST['date'],
+      (isset($_REQUEST['BehindTime'])) ? $_REQUEST['BehindTime'] : '',
+      (isset($_REQUEST['EarlyTime'])) ? $_REQUEST['EarlyTime']: '',
+      $_REQUEST['ReasonKind'],
+      $_REQUEST['ReasonRemarks'],
+      date("Y-m-d H:i:s"),
+      $_REQUEST['LoginUserName'],
+      $_SERVER['HTTP_USER_AGENT'],
+      $_SERVER['REMOTE_ADDR']
     ]]];
     $this->putGoogleSpredsheet($values, '遅刻早退届け');
 
@@ -75,20 +76,21 @@ class Application {
   private function OvertimeNotification() {
 
     $values = ['values' => [[
-        $_REQUEST['StaffName'],
-        $_REQUEST['date'],
-        (isset($_REQUEST['EarlyFromTime'])) ? $_REQUEST['EarlyFromTime'] : '',
-        (isset($_REQUEST['EarlyToTime'])) ? $_REQUEST['EarlyToTime'] : '',
-        (isset($_REQUEST['EarlyDulationTime'])) ? $_REQUEST['EarlyDulationTime'] : '',
-        (isset($_REQUEST['OverFromTime'])) ? $_REQUEST['OverFromTime']: '',
-        (isset($_REQUEST['OverToTime'])) ? $_REQUEST['OverToTime']: '',
-        (isset($_REQUEST['OverDulationTime'])) ? $_REQUEST['OverDulationTime'] : '',
-        $_REQUEST['ReasonKind'],
-        $_REQUEST['ReasonRemarks'],
-        date("Y-m-d H:i:s"),
-        $_REQUEST['LoginUserName'],
-        $_SERVER['HTTP_USER_AGENT'],
-        $_SERVER['REMOTE_ADDR']
+      $_REQUEST['StaffId'],
+      $_REQUEST['StaffName'],
+      $_REQUEST['date'],
+      (isset($_REQUEST['EarlyFromTime'])) ? $_REQUEST['EarlyFromTime'] : '',
+      (isset($_REQUEST['EarlyToTime'])) ? $_REQUEST['EarlyToTime'] : '',
+      (isset($_REQUEST['EarlyDulationTime'])) ? $_REQUEST['EarlyDulationTime'] : '',
+      (isset($_REQUEST['OverFromTime'])) ? $_REQUEST['OverFromTime']: '',
+      (isset($_REQUEST['OverToTime'])) ? $_REQUEST['OverToTime']: '',
+      (isset($_REQUEST['OverDulationTime'])) ? $_REQUEST['OverDulationTime'] : '',
+      $_REQUEST['ReasonKind'],
+      $_REQUEST['ReasonRemarks'],
+      date("Y-m-d H:i:s"),
+      $_REQUEST['LoginUserName'],
+      $_SERVER['HTTP_USER_AGENT'],
+      $_SERVER['REMOTE_ADDR']
     ]]];
     $this->putGoogleSpredsheet($values, '時間外勤務届け');
 
@@ -98,15 +100,16 @@ class Application {
   private function PaidLeaveNotification() {
 
     $values = ['values' => [[
-        $_REQUEST['StaffName'],
-        $_REQUEST['date'],
-        $_REQUEST['AnnualLeave'],
-        $_REQUEST['ReasonKind'],
-        $_REQUEST['ReasonRemarks'],
-        date("Y-m-d H:i:s"),
-        $_REQUEST['LoginUserName'],
-        $_SERVER['HTTP_USER_AGENT'],
-        $_SERVER['REMOTE_ADDR']
+      $_REQUEST['StaffId'],
+      $_REQUEST['StaffName'],
+      $_REQUEST['date'],
+      $_REQUEST['AnnualLeave'],
+      $_REQUEST['ReasonKind'],
+      $_REQUEST['ReasonRemarks'],
+      date("Y-m-d H:i:s"),
+      $_REQUEST['LoginUserName'],
+      $_SERVER['HTTP_USER_AGENT'],
+      $_SERVER['REMOTE_ADDR']
     ]]];
     $this->putGoogleSpredsheet($values, '有給休暇届け');
 
@@ -117,7 +120,7 @@ class Application {
       $updateBody = new Google_Service_Sheets_ValueRange($values);
       $result = $this->service->spreadsheets_values->append(
         SHEET_ID,
-        "$sheetname!A1:A1",
+        "$sheetname!A:A",
         $updateBody,
         ['valueInputOption' => 'USER_ENTERED']
       );
