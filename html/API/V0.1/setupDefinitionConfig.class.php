@@ -82,3 +82,18 @@ if(sizeof($Reason)>0) {
   ];
 }
 file_put_contents($_SERVER['DOCUMENT_ROOT']."/../webapp/config/ApplicationContentMaster.json", json_encode($ApplicationContent));
+
+//成功した旨をHTMLで表示
+header('Content-Type: text/html; charset=UTF-8');
+echo "<div style='display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    flex-wrap: nowrap;'>";
+echo "<h1>データの更新完了しました。</h1>";
+echo "<hr>";
+echo "<pre>" . json_encode(json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT']."/../webapp/config/StaffMaster.json")), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
+echo "<hr>";
+echo "<pre>" . json_encode(json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT']."/../webapp/config/ApplicationContentMaster.json")), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
+echo "</div>";

@@ -23,14 +23,14 @@ class Application {
 
     // シートのインスタンスを生成
     $this->service = new Google_Service_Sheets($client);
-    $this->log = new utils\Logging();
+    // $this->log = new utils\Logging();
 
-    $this->log->info(str_repeat("─", 80));
+    // $this->log->info(str_repeat("─", 80));
     $vServer = [];
     $vServer['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
     $vServer['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
-    $this->log->info($vServer);
-    $this->log->info($_REQUEST);
+    // $this->log->info($vServer);
+    // $this->log->info($_REQUEST);
   }
 
   public function execute() {

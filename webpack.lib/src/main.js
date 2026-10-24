@@ -63,6 +63,24 @@ $(document).ready(function() {
   const objKeyboard = new keyboard();
 
   //ステップ入力メニューの初期化
+  let applyingHistory = false;
+  let historyReady = false;
+
+  $('#smartwizard').on('showStep', function (e, anchor) {
+    if (applyingHistory) return;
+    const href = anchor.attr('href') || '';
+    const matched = href.match(/#step-(\d+)/);
+    if (!matched) return;
+    const step = Number(matched[1]) - 1;
+    const url = location.pathname + location.search + '#step-' + matched[1];
+    if (!historyReady) {
+      history.replaceState({ step }, '', url);
+      historyReady = true;
+      return;
+    }
+    history.pushState({ step }, '', url);
+  });
+
   $('#smartwizard').smartWizard({
     selected: 0,
     theme: 'dots',
@@ -75,6 +93,18 @@ $(document).ready(function() {
     keyboardSettings: {
         keyNavigation: false
     }
+  });
+
+  window.addEventListener('popstate', function (e) {
+    const step = (e.state && Number.isInteger(e.state.step)) ? e.state.step : 0;
+    applyingHistory = true;
+    $('.modal').each(function () {
+      const instance = $(this).data('bs.modal');
+      if (instance) instance._isTransitioning = false;
+      $(this).modal('hide');
+    });
+    $('#smartwizard').smartWizard('goToStep', step);
+    applyingHistory = false;
   });
 
   //職員選択ボタンの生成

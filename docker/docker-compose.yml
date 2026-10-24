@@ -1,0 +1,16 @@
+#version: '1'
+services:
+  web:
+    container_name: web_plus
+    build: web
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+      - "8083:443"
+    volumes:
+      - "./../:/var/www"
+    environment:
+      TZ: Asia/Tokyo
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4

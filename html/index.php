@@ -1,0 +1,505 @@
+<?php
+session_start();
+date_default_timezone_set('Asia/Tokyo');
+
+function BasicAuth() {
+  $host = strtolower($_SERVER['HTTP_HOST'] ?? '');
+  $host = preg_replace('/:\d+$/', '', $host);
+  if (in_array($host, ['localhost', '127.0.0.1', '[::1]'], true)) return;
+
+  $is_auth = (isset($_SESSION['is_auth'])) ? $_SESSION['is_auth'] : false;
+  if($is_auth) return;
+  if(isset($_GET['ref']) && $_GET['ref'] == 'line') {
+    $_SESSION['is_auth'] = true;
+    return;
+  }
+
+  if(!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) put401();
+  if(strlen($_SERVER['PHP_AUTH_USER'])<=0 || strlen($_SERVER['PHP_AUTH_PW'])<=0) put401();
+
+  $fp = @fopen("/var/www/.htpasswd", "r");
+  if (!$fp) {
+    header('HTTP', true, 500);
+    die();
+  }
+
+  //$hash = md5($_SERVER['PHP_AUTH_PW']); //ここでハッシュ値を求める際のアルゴリズムが不明
+  $str_auth = sprintf("%s:%s", $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+
+  $flg_auth = false;
+  //die(fgets($fp, 4096));
+  while (($buffer = fgets($fp, 4096)) !== false) {
+    $flg_auth = (trim($buffer) === $str_auth);
+    if($flg_auth) break;
+  }
+  //die(var_dump($flg_auth));
+  fclose($fp);
+  if(!$flg_auth) put401();
+  $_SESSION['is_auth']=true;
+  return;
+}
+
+function put401() {
+  header('WWW-Authenticate: Basic realm="Enter username and password."', true, 401);
+  header('Content-Type: text/plain; charset=utf-8');
+  die('このページを見るにはログインが必要です');
+}
+
+BasicAuth();
+header( 'Cache-Control: no-store, no-cache, must-revalidate' );
+header( 'Cache-Control: post-check=0, pre-check=0', FALSE );
+header('Pragma:no-cache');
+header('Content-Type: text/html; charset=utf-8');
+?>
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-cache">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- Bootstrap CSS -->
+  <link href="/assets/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- CSS -->
+  <link href="/assets/node_modules/smartwizard/dist/css/smart_wizard_all.min.css" rel="stylesheet" type="text/css" />
+  <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" rel="stylesheet">
+  <link href="https://use.fontawesome.com/releases/v5.15.4/css/v4-shims.css" rel="stylesheet">
+
+  <link href="/assets/node_modules/simple-keyboard/build/css/index.css" rel="stylesheet">
+  <link href="/assets/node_modules/animate.css/animate.min.css" rel="stylesheet" >
+  <title>有限会社プラス勤怠申請</title>
+</head>
+
+<body>
+
+  <div id="block_auth" style="display:flex; justify-content: center;align-items: center;">
+    <button class="btn btn-lg btn-info p-3 login">パスワードあり</button>
+    <button class="btn btn-lg btn-info p-3 nonAuth">パスワードなし</button>
+  </div>
+  <div id="block_main" style="display:none;">
+    <div style="text-align:right;padding:4px;">
+    <span class="badge badge-dark p-1 login_user_name">パスワードなし</span>
+    </div>
+    <div id="smartwizard">
+      <ul class="nav mt-3">
+        <li>
+          <a class="nav-link" href="#step-1">
+            Step 1<br>
+            職員選択
+          </a>
+        </li>
+        <li>
+          <a class="nav-link" href="#step-2">
+            Step 2<br>
+            届出選択
+          </a>
+        </li>
+        <li>
+          <a class="nav-link" href="#step-3">
+            Step 3<br>
+            日付選択
+          </a>
+        </li>
+        <li>
+          <a class="nav-link" href="#step-4">
+            Step 4<br>
+            備考入力
+          </a>
+        </li>
+        <li>
+          <a class="nav-link" href="#step-5">
+            Step 5<br>
+            確認
+          </a>
+        </li>
+        <li>
+          <a class="nav-link" href="#step-6">
+            Step 6<br>
+            完了
+          </a>
+        </li>
+      </ul>
+      <div class="tab-content container-fluid">
+        <div id="step-1" class="tab-pane" role="tabpanel">
+
+          <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">申請者の選択</h4>
+            <hr>
+            <p class="mb-0">あなたの名前をタップしてください</p>
+          </div>
+          <div class="text-center">
+            <div class="col-12 mt-1 text-center staffs" style="display: flex;justify-content: flex-start;flex-wrap: wrap;"></div>
+          </div>
+        </div>
+        <div id="step-2" class="tab-pane" role="tabpanel">
+          <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">届出の種類選択</h4>
+            <p class="mb-0">届け出の種類を下記より選択して下さい。</p>
+            <hr>
+            <div>
+              <p>
+                <span style="font-weight: bold;">申請者：</span><span class="Applicant"></span>
+              </p>
+            </div>
+          </div>
+          <div class="ApplicationTypeButtons"></div>
+        </div>
+        <div id="step-3" class="tab-pane" role="tabpanel">
+          <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">申請日付の選択</h4>
+            <p class="mb-0">届け出日付を選択して下さい</p>
+            <hr>
+            <div>
+              <p>
+                <span style="font-weight: bold;">申請者：</span><span class="Applicant"></span>
+              </p>
+              <p>
+                <span style="font-weight: bold;">申請種類：</span>
+                <span class="ApplicationTypeName"></span>
+                <span class="ApplicationTypeValue"></span>
+              </p>
+            </div>
+          </div>
+          <div id="calendar">
+            <table class="table">
+              <thead>
+                <tr>
+                  <td colspan="1" style="text-align:left;border:unset;" id="calendar_prev">
+                    <i class="fas fa-angle-double-left" style="font-size:2em;"></i>
+                  </td>
+                  <td colspan="5" class="nowMonth" style="text-align:center;border:unset;"></td>
+                  <td colspan="1" style="text-align:right;border:unset;" id="calendar_next"><i class="fas fa-angle-double-right" style="font-size:2em;"></i></td>
+                </tr>
+                <tr class="weekRow">
+                  <td class="Sunday">日</td>
+                  <td>月</td>
+                  <td>火</td>
+                  <td>水</td>
+                  <td>木</td>
+                  <td>金</td>
+                  <td class="Saturday">土</td>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!---------------------- STEP04 -------------------------------------------->
+        <div id="step-4" class="tab-pane" role="tabpanel">
+          <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">備考入力</h4>
+            <p>理由を選択して下さい</p>
+            <hr>
+            <div>
+              <p>
+                <span style="font-weight: bold;">申請者：</span><span class="Applicant"></span>
+              </p>
+              <p>
+                <span style="font-weight: bold;">申請種類：</span>
+                <span class="ApplicationTypeName"></span>
+                <span class="ApplicationTypeValue"></span>
+              </p>
+              <p>
+                <span style="font-weight: bold;">申請日：</span>
+                <span class="ApplicationDate"></span>
+              </p>
+
+              <p class="EarlyTimesContextBlock" style="display:none;">
+                <span style="font-weight: bold;">早出：</span>
+                <span class="EarlyTimesContext"></span>
+              </p>
+
+              <p class="OverTimesContextBlock" style="display:none;">
+                <span style="font-weight: bold;">残業：</span>
+                <span class="OverTimesContext"></span>
+              </p>
+
+            </div>
+          </div>
+
+          <div class="btn-group btn-group-toggle ApplicationTypeReasonSet mb-3" data-toggle="buttons">
+          </div>
+
+          <div class="remarks mb-4" style="display:none;">
+            <p>理由を入力してください</p>
+            <textarea class="form-control" style="height:300px;border:1px solid #333;"></textarea>
+          </div>
+
+          <button type="button" class="btn btn-lg btn-block btn-info confirm">次へ</button>
+        </div>
+        <div id="step-5" class="tab-pane" role="tabpanel">
+          <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">内容確認</h4>
+            <p>内容を確認して問題なければ確定ボタンをタップしてください</p>
+            <hr>
+
+            <table class="table table-bordered">
+              <tr>
+                <th style="font-size:1.5em;width:20%;">申請者</th>
+                <td class="Applicant" style="width:80%;text-align:left;"></td>
+              </tr>
+              <tr>
+                <th style="font-size:1.5em;width:10%;">申請日</th>
+                <td class="ApplicationDate" style="width:90%;text-align:left;"></td>
+              </tr>
+              <tr>
+                <th style="font-size:1.5em;width:20%;">申請種別</th>
+                <td style="width:80%;text-align:left;">
+                  <span class="ApplicationTypeName"></span>
+                  <span class="ApplicationTypeValue"></span>
+                </td>
+              </tr>
+
+              <tr class="EarlyTimesContextBlock" style="display:none;">
+                <th style="font-size:1.5em;width:20%;">早出</th>
+                <td class="EarlyTimesContext" style="text-align:left;"></td>
+              </tr>
+
+              <tr class="OverTimesContextBlock" style="display:none;">
+                <th style="font-size:1.5em;width:20%;">残業</th>
+                <td class="OverTimesContext" style="text-align:left;"></td>
+              </tr>
+
+              <tr>
+                <th style="font-size:1.5em;width:20%;">理由</th>
+                <td style="width:80%;text-align:left;">
+                  <span class="ReasonKindLabel"></span>
+                </td>
+              </tr>
+              <tr id="remarksContentBlock" style="display: none;">
+                <th style="font-size:1.5em;width:20%;">備考</th>
+                <td style="width:80%;text-align:left;">
+                  <p class="remarksContent"></p>
+                </td>
+              </tr>
+            </table>
+
+          </div>
+          <button class="btn btn-lg btn-block btn-info submit">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none;"></span>
+            申請する
+          </button>
+        </div>
+        <div id="step-6" class="tab-pane" role="tabpanel">
+          <div class="jumbotron">
+            <h1 class="display-4">申請完了</h1>
+            <p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+            <hr class="my-4">
+            <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
+            <a class="btn btn-primary btn-lg" href="/" role="button">&emsp;<i class="fas fa-keyboard"></i>&nbsp;続けて申請&emsp;&emsp;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" class="loading">
+    <div class="circle"></div>
+  </div>
+
+
+  <!-- パスワード認証モーダル -->
+  <div id="modal_login" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-key"></i>&nbsp;パスワード確認</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control password" name="" placeholder="パスワードを入力してください">
+          <div class="alert" style="display: none;color:rgb(255 0 0 / 71%);padding: 0px;margin: 5px 0px 0px;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+          <button type="button" class="btn btn-primary btn-PasswordAuth">確認</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 早退・遅刻モーダル -->
+  <div id="BehindOrEarlyTimeModal" class="modal fade bd-example-modal-xl" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 90%;">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-question-circle"></i>&nbsp;遅刻・早退の時間を入力してください</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-danger" role="alert" style="display: none;"></div>
+          <table class="table">
+            <tr>
+              <td><label style="font-size:1.5em;">出社時間（遅刻）</label></td>
+              <td>
+                <input type="text" class="form-control form-control-lg BehindTime keyboard_input" readonly="readonly" />
+                <div class="simple-keyboard"></div>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><label style="font-size:1.5em;">退社時間（早退）</label></td>
+              <td>
+                <input type="text" class="form-control form-control-lg EarlyTime keyboard_input" readonly="readonly"/>
+                <div class="simple-keyboard"></div>
+              </td>
+              <td></td>
+            </tr>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+          <button type="button" class="btn btn-primary btn-BehindOrEarlyTime">セット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 時間外勤務セットモーダル -->
+  <div id="OvertimeModal" class="modal fade bd-example-modal-xl" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 90%;">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-question-circle"></i>&nbsp;時間外勤務の時間を入力してください</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="alert alert-danger mb-0" style="display: none;position: absolute;width:95%;"></p>
+          <table class="table mt-5">
+            <thead>
+              <tr>
+                <td>&nbsp;</td>
+                <td>開始</td>
+                <td>終了</td>
+                <td>申請時間</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><label>早出時間</label></td>
+                <td>
+                  <input class="form-control form-control-lg keyboard_input" type="text" id="EarlyFromTime" readonly="readonly" />
+                  <div class="simple-keyboard"></div>
+                </td>
+                <td>
+                  <input class="form-control form-control-lg keyboard_input" type="text" id="EarlyToTime" readonly="readonly" />
+                  <div class="simple-keyboard"></div>
+                </td>
+                <td>
+                  <input class="form-control form-control-lg keyboard_input" type="text" id="EarlyDulationTime" readonly="readonly" />
+                  <div class="simple-keyboard"></div>
+                </td>
+              </tr>
+              <tr>
+                <td><label>残業時間</label></td>
+                <td>
+                  <input class="form-control form-control-lg keyboard_input" type="text" id="OverFromTime" readonly="readonly" />
+                  <div class="simple-keyboard"></div>
+                </td>
+                <td>
+                  <input class="form-control form-control-lg keyboard_input" type="text" id="OverToTime" readonly="readonly" />
+                  <div class="simple-keyboard"></div>
+                </td>
+                <td>
+                  <input class="form-control form-control-lg keyboard_input" type="text" id="OverDulationTime" readonly="readonly" />
+                  <div class="simple-keyboard"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+          <button type="button" class="btn btn-primary btn-Overtime">セット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 休暇種別選択モーダル -->
+  <div id="AnnualLeaveModal" class="modal fade bd-example-modal-xl" tabindex="-1" role="dialog" data-backdrop="false" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-question-circle"></i>&nbsp;有給休暇・欠勤の種類を選択してください</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <button type="button" class="btn btn-outline-primary btn-lg btn-block AnnualLeave">終日有給</button>
+          <button type="button" class="btn btn-outline-primary btn-lg btn-block AnnualLeave exceptingPartTime">午前有給</button>
+          <button type="button" class="btn btn-outline-primary btn-lg btn-block AnnualLeave exceptingPartTime">午後有給</button>
+          <hr>
+          <button type="button" class="btn btn-outline-primary btn-lg btn-block AnnualLeave">終日欠勤</button>
+          <button type="button" class="btn btn-outline-primary btn-lg btn-block AnnualLeave exceptingPartTime">午前欠勤</button>
+          <button type="button" class="btn btn-outline-primary btn-lg btn-block AnnualLeave exceptingPartTime">午後欠勤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <template id="keyboard">
+    <div class="simple-keyboard hg-theme-default hg-layout-numeric numeric-theme hg-layout-default">
+      <div class="hg-rows">
+        <div class="hg-row">
+          <div class="hg-button hg-standardBtn" data-skbtn="1" ><span>1</span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn="2" ><span>2</span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn="3" ><span>3</span></div>
+        </div>
+        <div class="hg-row">
+          <div class="hg-button hg-standardBtn" data-skbtn="4" ><span>4</span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn="5" ><span>5</span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn="6" ><span>6</span></div>
+        </div>
+        <div class="hg-row">
+          <div class="hg-button hg-standardBtn" data-skbtn="7" ><span>7</span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn="8" ><span>8</span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn="9" ><span>9</span></div>
+        </div>
+        <div class="hg-row">
+          <div class="hg-button hg-standardBtn nullcell" data-skbtn="" ><span></span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn="0" ><span>0</span></div>
+          <div class="hg-button hg-standardBtn" data-skbtn=":" ><span>:</span></div>
+        </div>
+        <div class="hg-row">
+          <div class="hg-button hg-functionBtn hg-button-bksp" data-skbtn="" ><span>一文字削除</span></div>
+          <div class="hg-button hg-functionBtn hg-button-clear" data-skbtn="" ><span>全てクリア</span></div>
+        </div>
+        <div class="hg-row">
+          <div class="hg-button hg-functionBtn hg-button-close" data-skbtn=""><span>閉じる</span></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="/assets/node_modules/jquery/dist/jquery.min.js" type="text/javascript"></script>
+  <script src="/assets/node_modules/popper.js/dist/umd/popper.min.js" type="text/javascript"></script>
+  <script src="/assets/node_modules/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
+  <!-- JavaScript -->
+  <script src="/assets/node_modules/smartwizard/dist/js/jquery.smartWizard.min.js" type="text/javascript"></script>
+  <script src="/assets/node_modules/jquery-clock-timepicker/jquery-clock-timepicker.min.js" type="text/javascript"></script>
+
+  <script src="/assets/node_modules/dayjs/dayjs.min.js" type="text/javascript"></script>
+  <script src="/assets/node_modules/dayjs/locale/ja.js" type="text/javascript"></script>
+  <script src="/assets/node_modules/dayjs/plugin/utc.js" type="text/javascript"></script>
+  <script src="/assets/node_modules/dayjs/plugin/customParseFormat.js" type="text/javascript"></script>
+
+  <!--<script src="/assets/js/keyboard.class.js?v=10" type="text/javascript"></script>-->
+  <script src="/assets/dist/main_74ef891f89b10411a1c1.js" type="text/javascript"></script>
+
+</body>
+
+</html>
