@@ -7,4 +7,5 @@ html/node_modules/*
 sftp-config.json
 .htpasswd
 certificate/
+webapp/Confidential/
 .DS_Store
