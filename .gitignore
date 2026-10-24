@@ -1,7 +1,5 @@
 logs/*
-html/assets/dist/*
 html/assets/dist.zip
-html/assets/node_modules/*
 webpack.lib/node_modules/*
 html/node_modules/*
 sftp-config.json
