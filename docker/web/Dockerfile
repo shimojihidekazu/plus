@@ -30,10 +30,11 @@ COPY ./plus-ssl.conf /etc/apache2/sites-available/plus-ssl.conf
 
 # 仮想ホストを有効化
 RUN a2ensite 000-default.conf
-RUN a2ensite plus-ssl.conf
 RUN a2enmod ssl
+COPY plus-entrypoint.sh /usr/local/bin/plus-entrypoint.sh
+RUN chmod +x /usr/local/bin/plus-entrypoint.sh
 
 # タイムゾーン設定
 RUN ln -sf  /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
-CMD ["apache2-foreground"]
+CMD ["plus-entrypoint.sh"]
